@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -91,17 +92,25 @@ func GetTopUpInfo(c *gin.Context) {
 	}
 
 	data := gin.H{
+<<<<<<< HEAD
 		"enable_online_topup":        isEpayTopUpEnabled(),
 		"enable_stripe_topup":        isStripeTopUpEnabled(),
 		"enable_creem_topup":         isCreemTopUpEnabled(),
 		"enable_waffo_topup":         enableWaffo,
 		"enable_waffo_pancake_topup": enableWaffoPancake,
+=======
+		"enable_online_topup": operation_setting.PayAddress != "" && operation_setting.EpayId != "" && operation_setting.EpayKey != "",
+		"enable_stripe_topup": setting.StripeApiSecret != "" && setting.StripeWebhookSecret != "" && setting.StripePriceId != "",
+		"enable_creem_topup":  setting.CreemApiKey != "" && setting.CreemProducts != "[]",
+		"enable_waffo_topup":  enableWaffo,
+>>>>>>> feature/skills-and-logs
 		"waffo_pay_methods": func() interface{} {
 			if enableWaffo {
 				return setting.GetWaffoPayMethods()
 			}
 			return nil
 		}(),
+<<<<<<< HEAD
 		"creem_products":          setting.CreemProducts,
 		"pay_methods":             payMethods,
 		"min_topup":               operation_setting.MinTopUp,
@@ -110,6 +119,15 @@ func GetTopUpInfo(c *gin.Context) {
 		"waffo_pancake_min_topup": setting.WaffoPancakeMinTopUp,
 		"amount_options":          operation_setting.GetPaymentSetting().AmountOptions,
 		"discount":                operation_setting.GetPaymentSetting().AmountDiscount,
+=======
+		"creem_products":   setting.CreemProducts,
+		"pay_methods":      payMethods,
+		"min_topup":        operation_setting.MinTopUp,
+		"stripe_min_topup": setting.StripeMinTopUp,
+		"waffo_min_topup":  setting.WaffoMinTopUp,
+		"amount_options":   operation_setting.GetPaymentSetting().AmountOptions,
+		"discount":         operation_setting.GetPaymentSetting().AmountDiscount,
+>>>>>>> feature/skills-and-logs
 	}
 	common.ApiSuccess(c, data)
 }
@@ -213,8 +231,20 @@ func RequestEpay(c *gin.Context) {
 	}
 
 	if !operation_setting.ContainsPayMethod(req.PaymentMethod) {
+<<<<<<< HEAD
 		c.JSON(http.StatusOK, gin.H{"message": "error", "data": "支付方式不存在"})
+=======
+		common.ApiError(c, errors.New("支付方式不存在"))
+>>>>>>> feature/skills-and-logs
 		return
+	}
+
+	epayType := req.PaymentMethod
+	switch req.PaymentMethod {
+	case "wechat_qr":
+		epayType = "wxpay"
+	case "alipay_qr":
+		epayType = "alipay"
 	}
 
 	callBackAddress := service.GetCallbackAddress()
@@ -224,11 +254,15 @@ func RequestEpay(c *gin.Context) {
 	tradeNo = fmt.Sprintf("USR%dNO%s", id, tradeNo)
 	client := GetEpayClient()
 	if client == nil {
+<<<<<<< HEAD
 		c.JSON(http.StatusOK, gin.H{"message": "error", "data": "当前管理员未配置支付信息"})
+=======
+		common.ApiError(c, errors.New("当前管理员未配置支付信息"))
+>>>>>>> feature/skills-and-logs
 		return
 	}
 	uri, params, err := client.Purchase(&epay.PurchaseArgs{
-		Type:           req.PaymentMethod,
+		Type:           epayType,
 		ServiceTradeNo: tradeNo,
 		Name:           fmt.Sprintf("TUC%d", req.Amount),
 		Money:          strconv.FormatFloat(payMoney, 'f', 2, 64),
@@ -237,8 +271,12 @@ func RequestEpay(c *gin.Context) {
 		ReturnUrl:      returnUrl,
 	})
 	if err != nil {
+<<<<<<< HEAD
 		logger.LogError(c.Request.Context(), fmt.Sprintf("易支付 拉起支付失败 user_id=%d trade_no=%s payment_method=%s amount=%d error=%q", id, tradeNo, req.PaymentMethod, req.Amount, err.Error()))
 		c.JSON(http.StatusOK, gin.H{"message": "error", "data": "拉起支付失败"})
+=======
+		common.ApiError(c, err)
+>>>>>>> feature/skills-and-logs
 		return
 	}
 	amount := req.Amount
@@ -258,12 +296,23 @@ func RequestEpay(c *gin.Context) {
 	}
 	err = topUp.Insert()
 	if err != nil {
+<<<<<<< HEAD
 		logger.LogError(c.Request.Context(), fmt.Sprintf("易支付 创建充值订单失败 user_id=%d trade_no=%s payment_method=%s amount=%d error=%q", id, tradeNo, req.PaymentMethod, req.Amount, err.Error()))
 		c.JSON(http.StatusOK, gin.H{"message": "error", "data": "创建订单失败"})
 		return
 	}
 	logger.LogInfo(c.Request.Context(), fmt.Sprintf("易支付 充值订单创建成功 user_id=%d trade_no=%s payment_method=%s amount=%d money=%.2f uri=%q params=%q", id, tradeNo, req.PaymentMethod, req.Amount, payMoney, uri, common.GetJsonString(params)))
 	c.JSON(http.StatusOK, gin.H{"message": "success", "data": params, "url": uri})
+=======
+		common.ApiError(c, err)
+		return
+	}
+	c.JSON(200, gin.H{
+		"message": "success",
+		"url":     uri,
+		"data":    params,
+	})
+>>>>>>> feature/skills-and-logs
 }
 
 // tradeNo lock
