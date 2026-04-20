@@ -145,6 +145,7 @@ func RequestStripePay(c *gin.Context) {
 }
 
 func StripeWebhook(c *gin.Context) {
+<<<<<<< HEAD
 	ctx := c.Request.Context()
 	if !isStripeWebhookEnabled() {
 		logger.LogWarn(ctx, fmt.Sprintf("Stripe webhook 被拒绝 reason=webhook_disabled path=%q client_ip=%s", c.Request.RequestURI, c.ClientIP()))
@@ -152,6 +153,14 @@ func StripeWebhook(c *gin.Context) {
 		return
 	}
 
+=======
+	// 检查 webhook secret 是否配置
+	if setting.StripeWebhookSecret == "" {
+		log.Println("⚠️ Stripe Webhook secret Error")
+		c.AbortWithStatus(http.StatusServiceUnavailable)
+		return
+	}
+>>>>>>> 3252fd2e1 (fix: payment callback security vulnerability (#4353))
 	payload, err := io.ReadAll(c.Request.Body)
 	if err != nil {
 		logger.LogError(ctx, fmt.Sprintf("Stripe webhook 读取请求体失败 path=%q client_ip=%s error=%q", c.Request.RequestURI, c.ClientIP(), err.Error()))

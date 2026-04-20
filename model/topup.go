@@ -68,6 +68,7 @@ func GetTopUpByTradeNo(tradeNo string) *TopUp {
 	return topUp
 }
 
+<<<<<<< HEAD
 func UpdatePendingTopUpStatus(tradeNo string, expectedPaymentMethod string, targetStatus string) error {
 	if tradeNo == "" {
 		return errors.New("未提供支付单号")
@@ -96,6 +97,10 @@ func UpdatePendingTopUpStatus(tradeNo string, expectedPaymentMethod string, targ
 }
 
 func Recharge(referenceId string, customerId string, callerIp string) (err error) {
+=======
+// For Stripe Only
+func Recharge(referenceId string, customerId string) (err error) {
+>>>>>>> 3252fd2e1 (fix: payment callback security vulnerability (#4353))
 	if referenceId == "" {
 		return errors.New("未提供支付单号")
 	}
@@ -113,11 +118,18 @@ func Recharge(referenceId string, customerId string, callerIp string) (err error
 		if err != nil {
 			return errors.New("充值订单不存在")
 		}
+<<<<<<< HEAD
 
 		if topUp.PaymentMethod != PaymentMethodStripe {
 			return ErrPaymentMethodMismatch
 		}
 
+=======
+		// 验证订单必须是 Stripe 支付方式
+		if topUp.PaymentMethod != "stripe" {
+			return errors.New("支付方式异常")
+		}
+>>>>>>> 3252fd2e1 (fix: payment callback security vulnerability (#4353))
 		if topUp.Status != common.TopUpStatusPending {
 			return errors.New("充值订单状态错误")
 		}
